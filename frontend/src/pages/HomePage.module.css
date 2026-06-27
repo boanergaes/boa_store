@@ -1,0 +1,100 @@
+.pageShell {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.ghostButton,
+.cartButton {
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #111827;
+  border-radius: 0;
+  padding: 10px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.cartButton {
+  position: relative;
+  padding: 10px 12px;
+}
+
+.cartBadge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ef4444;
+  color: white;
+  border-radius: 999px;
+  min-width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+}
+
+.filterSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.filterTags {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filterTag {
+  padding: 8px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #111827;
+  border-radius: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.filterTag.active {
+  background: #111827;
+  color: white;
+  border-color: #111827;
+}
+
+.filterLabel {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: inherit;
+}
+
+.filterRemove {
+  font-size: 1rem;
+  line-height: 1;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+@media (max-width: 700px) {
+  .filterSection {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

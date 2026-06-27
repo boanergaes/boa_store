@@ -1,0 +1,104 @@
+.pageShell {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.backLink,
+.ghostButton,
+.primaryButton,
+.iconButton {
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #111827;
+  border-radius: 0;
+  padding: 10px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.primaryButton {
+  background: #111827;
+  color: white;
+  border-color: #111827;
+}
+
+.iconButton {
+  padding: 10px;
+  min-width: 42px;
+  justify-content: center;
+}
+
+.cartSummary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+}
+
+.cartSummary h2 {
+  margin: 0 0 4px;
+}
+
+.cartList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cartItem {
+  background: white;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cartImage {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  background: #f3f4f6;
+}
+
+.cartItemInfo {
+  flex: 1;
+}
+
+.cartItemInfo h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+
+.cartItemInfo p {
+  margin: 0 0 6px;
+  color: #6b7280;
+}
+
+.cartActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.emptyState {
+  background: white;
+  border: 1px dashed #d1d5db;
+  padding: 24px;
+  text-align: center;
+  color: #6b7280;
+}
+
+@media (max-width: 700px) {
+  .cartSummary,
+  .cartItem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
