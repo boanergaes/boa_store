@@ -10,7 +10,7 @@ type ProductFormProps = {
 }
 
 export function ProductForm({ product, categories, onSave, onClose }: ProductFormProps) {
-  const handleSubmit = (event: SubmitEvent) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const target = event.currentTarget
     const formData = new FormData(target)
