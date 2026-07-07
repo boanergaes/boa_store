@@ -1,16 +1,18 @@
-import express, {type Request, type Response} from 'express';
+import express from 'express';
 // import path from 'node:path';
 import dotenv from 'dotenv';
+import { appRouter } from './routes/router.js';
 
 dotenv.config();
 
 const PORT: number = Number(process.env.PORT) || 3000;
+const BASE_API = process.env.BASE_URL! as string;
 
 const app = express();
 
-app.get('/', (req: Request, res: Response): void => {
-    console.log(req.body);
-    res.send('Hello World.');
-})
+app.use(express.json());
 
-app.listen(PORT, (): void => console.log(`Server running on port ${PORT}.`));
+// App router
+app.use('/api', appRouter);
+
+app.listen(PORT, (): void => console.log(`Server running on ${BASE_API}.`));
