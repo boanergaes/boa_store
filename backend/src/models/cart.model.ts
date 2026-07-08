@@ -10,15 +10,6 @@ interface CartEntry {
     image_path: string | null
 }
 
-interface NewCartEntry {
-    prod_id: number,
-    prod_name: string,
-    category_id: number | null,
-    category: string | null,
-    price: number,
-    image_path: string | null
-}
-
 async function getCart(): Promise<CartEntry[]> {
     try {
         const result = await db.query(`
@@ -36,29 +27,44 @@ async function getCart(): Promise<CartEntry[]> {
     
         return result.rows;
     } catch(err) {
-        console.error(`Error: could not fetch cart items.`, err);
+        console.error(`Error: could not fetch cart items.`);
         throw(err);
     }
 }
 
-async function addItemToCart(item: NewCartEntry): Promise<CartEntry> {
+async function addItemToCart(entry_id: number): Promise<CartEntry | undefined> {
     try {
-        // @TODO: validate prod_id, category_id, ...
         const result = await db.query(`
-            INSERT INTO cart (entry_id) VALUES ($1) RETURNING id;
-        `, [item.prod_id]);
+            WITH created_entry AS (
+                INSERT INTO cart (entry_id) 
+                SELECT id FROM products
+                WHERE id = $1 RETURNING *
+            )
+            SELECT 
+                created_entry.id,
+                created_entry.entry_id AS prod_id,
+                products.name AS prod_name,
+                products.price,
+                products.image_path,
+                products.category_id,
+                prod_category.category
+            FROM created_entry JOIN products
+            ON created_entry.entry_id = products.id
+            JOIN prod_category
+            ON products.category_id = prod_category.id;
+        `, [entry_id]);
 
-        return {
-            id: result.rows[0].id,
-            ...item
+        return result.rows[0];
+    } catch(err: any) {
+        if (err.code === "23505") { // postgresql's duplicate key constraint violation error code.
+            throw Error('DUPLICATE_ENTRY_ID');
         }
-    } catch(err) {
-        console.error(`Error: could not add item ${item.prod_name} to cart.`, err);
+        console.error(`Error: could not add item ${entry_id} to cart.`);
         throw(err);
     }
 }
 
-async function deleteCartItem(id: number): Promise<{id: number, entry_id: number}> {
+async function deleteCartItem(id: number): Promise<{id: number, entry_id: number} | undefined> {
     try {
         // @TODO: validate cart id?
         const result = await db.query(`
@@ -67,10 +73,10 @@ async function deleteCartItem(id: number): Promise<{id: number, entry_id: number
 
         return result.rows[0];
     } catch(err) {
-        console.error(`Error: could not delete card item ${id}.`, err);
+        console.error(`Error: could not delete card item ${id}.`);
         throw(err);
     }
 }
 
-export type { CartEntry, NewCartEntry };
-export { getCart, addItemToCart, deleteCartItem };
+export type { CartEntry };
+export const CartModel = { getCart, addItemToCart, deleteCartItem };

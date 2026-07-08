@@ -6,7 +6,7 @@ async function getAllProducts(_: Request, res: Response): Promise<void> {
     try {
         const result: Product[] = await ProductModel.getAllProducts();
 
-        res.status(200).json({
+        res.status(result.length > 0 ? 200 : 204).json({
             message: result.length > 0 ? 'Fetched All products successfully.' : 'Found no products in database. Please Add some products.',
             prodCount: result.length,   
             body: result

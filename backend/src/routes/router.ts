@@ -8,3 +8,4 @@ export const appRouter = express.Router();
 appRouter.use('/products', productRoute);
 appRouter.use('/cart', cartRoute);
 appRouter.use('/category', prodCategoryRoute);
+// appRouter.use('/assets') // for downloading images.
