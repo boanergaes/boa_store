@@ -16,14 +16,6 @@ interface NewProduct {
     price: number
 }
 
-// interface UpdatedProduct {
-//     id: number,
-//     prod_name?: string,
-//     category_id?: number,
-//     image_path?: string,
-//     price?: number
-// }
-
 async function getAllProducts(): Promise<Product[]> {
     try {
         const result = await db.query(`
@@ -73,7 +65,7 @@ async function createProduct(product: NewProduct): Promise<Product> {
                 prod_category.category, 
                 new_product.image_path, 
                 new_product.price 
-            FROM new_product JOIN prod_category
+            FROM new_product LEFT JOIN prod_category
             ON new_product.category_id = prod_category.id;
         `, [product.prod_name, product.category_id, product.image_path, product.price]);
 
@@ -120,7 +112,7 @@ async function updateProduct(id: number, newProduct: NewProduct): Promise<Produc
                 prod_category.category, 
                 updated_product.image_path, 
                 updated_product.price 
-            FROM updated_product JOIN prod_category
+            FROM updated_product LEFT JOIN prod_category
             ON updated_product.category_id = prod_category.id;
         `, [ newProduct.prod_name, newProduct.category_id, newProduct.image_path, newProduct.price, id ]);
 

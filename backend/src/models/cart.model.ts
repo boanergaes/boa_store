@@ -50,9 +50,10 @@ async function addItemToCart(entry_id: number): Promise<CartEntry | undefined> {
                 prod_category.category
             FROM created_entry JOIN products
             ON created_entry.entry_id = products.id
-            JOIN prod_category
+            LEFT JOIN prod_category
             ON products.category_id = prod_category.id;
         `, [entry_id]);
+
 
         return result.rows[0];
     } catch(err: any) {

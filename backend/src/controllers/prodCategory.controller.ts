@@ -18,13 +18,17 @@ async function getAllCategories(_: Request, res: Response): Promise<void> {
 
 async function postCategory(req: Request, res: Response): Promise<void> {
     try {
-        const result: ProdCategory = await ProdCategoryModel.createCategory(req.body.category!);
+        const result: ProdCategory = await ProdCategoryModel.createCategory(req.body.category!.toLowerCase());
 
         res.status(201).json({
             message: "Created product category successfully.",
             body: result
         })
-    } catch(err) {
+    } catch(err: any) {
+        if (err.message === "DUPLICATE__CATEGORY") {
+            res.status(409).json({message: "Category already exists."});
+            return;
+        }
         console.error(err);
         res.status(500).json({message: 'Could not create product category, something went wrong in the server. Sorry!'});
     }

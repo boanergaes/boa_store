@@ -27,7 +27,10 @@ async function createCategory(category: string): Promise<ProdCategory> {
         `, [category]);
         
         return result.rows[0];
-    } catch(err) {
+    } catch(err: any) {
+        if (err.code === "23505") { // postgresql's duplicate key constraint violation error code.
+            throw Error('DUPLICATE__CATEGORY');
+        }
         console.error(`Error: could not create category ${category}`);
         throw(err);
     }
