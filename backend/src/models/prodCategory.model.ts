@@ -15,7 +15,7 @@ async function getAllCategories(): Promise<ProdCategory[]> {
     }
 
     catch(err) {
-        console.error(`Error: could not fetch product categories.`, err);
+        console.error(`Error: could not fetch product categories.`);
         throw(err);
     }
 }
@@ -28,7 +28,7 @@ async function createCategory(category: string): Promise<ProdCategory> {
         
         return result.rows[0];
     } catch(err) {
-        console.error(`Error: could not create category ${category}`, err);
+        console.error(`Error: could not create category ${category}`);
         throw(err);
     }
 }
@@ -41,10 +41,10 @@ async function deleteCategory(id: number): Promise<ProdCategory> {
 
         return result.rows[0];
     } catch(err) {
-        console.error(`Error: could not delete category ${id};`, err);
+        console.error(`Error: could not delete category ${id};`);
         throw(err);
     }
 }
 
 export type { ProdCategory };
-export { getAllCategories, createCategory, deleteCategory };
+export const ProdCategoryModel = { getAllCategories, createCategory, deleteCategory };

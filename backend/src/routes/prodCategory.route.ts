@@ -1,8 +1,8 @@
 import express from 'express';
+import { PordCategoryController } from '../controllers/prodCategory.controller.js';
 
 export const prodCategoryRoute = express.Router();
 
-prodCategoryRoute.get('', (req, res) => {
-    console.log(req.originalUrl, 'Product Category')
-    res.json(req.body)
-});
+prodCategoryRoute.get('', PordCategoryController.getAllCategories);
+prodCategoryRoute.post('', PordCategoryController.postCategory);
+prodCategoryRoute.delete('/:id', PordCategoryController.deleteCategory);
