@@ -12,7 +12,6 @@ interface Product {
 interface NewProduct {
     prod_name: string,
     category_id: number | null,
-    category: string | null,
     image_path: string | null,
     price: number
 }
@@ -35,7 +34,7 @@ async function getAllProducts(): Promise<Product[]> {
 
         return result.rows;
     } catch(err) {
-        console.error('Error: can not load all products:', err);
+        console.error('Error: can not load all products.');
         throw(err);
     }
 }
@@ -52,7 +51,7 @@ async function getProductWithId(id: number): Promise<Product> {
 
         return result.rows[0];
     } catch(err) {
-        console.error(`Error: can not load product with id ${id}:`, err);
+        console.error(`Error: can not load product with id ${id}:`);
         throw(err);
     }
 }
@@ -62,54 +61,76 @@ async function createProduct(product: NewProduct): Promise<Product> {
         // @CHECK: what if the nullable fields are undefined or null?
         // @TODO: validate product catagory
         const result = await db.query(`
-            INSERT INTO products
-            VALUES (name, category_id, image_path, price)
-            VALUES ($1, $2, $3, $4)
-            RETURNING id;
+            WITH new_product AS (
+                INSERT INTO products (name, category_id, image_path, price)
+                VALUES ($1, $2, $3, $4)
+                RETURNING *
+            )
+            SELECT 
+                new_product.id, 
+                new_product.name AS prod_name, 
+                new_product.category_id, 
+                prod_category.category, 
+                new_product.image_path, 
+                new_product.price 
+            FROM new_product JOIN prod_category
+            ON new_product.category_id = prod_category.id;
         `, [product.prod_name, product.category_id, product.image_path, product.price]);
 
-        return {
-            id: result.rows[0].id,
-            ...product
-        }
+        return result.rows[0];
     } catch(err) {
-        console.error(`Error: could not create product:`, product, err);
+        console.error(`Error: could not create product:`, product);
         throw(err);
     }
 }
 
-async function deleteProduct(id: number): Promise<{id: number, prod_name: string}> {
+async function deleteProduct(id: number): Promise<Product> {
     try {
         // @TODO: Delete the image stored also
         // @TODO: does the product exit? will pgsql handle it for me?
         const result = await db.query(`
             DELETE FROM products WHERE id = $1
-            RETURNING name as prod_name;
+            RETURNING *;
         `, [id]);
         
-        return {
-            id,
-            prod_name: result.rows[0].prod_name
-        }
+        return result.rows[0];
     } catch(err) {
-        console.error(`Error: could not delete product id ${id}:`, err);
+        console.error(`Error: could not delete product id ${id}.`);
         throw(err);
     }
 }
 
-async function updateProduct(newProduct: Product): Promise<Product> {
+async function updateProduct(id: number, newProduct: NewProduct): Promise<Product> {
     try {
         // @TODO: add validation for cata_id, img, ...
-        await db.query(`
-            UPDATE products SET name = $1, category_id = $2, image_path = $3, price = $4  WHERE id = $5;
-        `, [ newProduct.prod_name, newProduct.category_id, newProduct.image_path, newProduct.price, newProduct.id ]);
+        const result = await db.query(`
+            WITH updated_product AS (
+                UPDATE products SET 
+                    name = $1, 
+                    category_id = $2, 
+                    image_path = $3, 
+                    price = $4  
+                WHERE id = $5 
+                RETURNING *
+            )
+            SELECT 
+                updated_product.id, 
+                updated_product.name AS prod_name, 
+                updated_product.category_id, 
+                prod_category.category, 
+                updated_product.image_path, 
+                updated_product.price 
+            FROM updated_product JOIN prod_category
+            ON updated_product.category_id = prod_category.id;
+        `, [ newProduct.prod_name, newProduct.category_id, newProduct.image_path, newProduct.price, id ]);
 
-        return newProduct;
+        return result.rows[0];
     } catch(err) {
-        console.error(`Error: could not edit product id ${newProduct.id} name to ${newProduct.prod_name}:`, err);
+        console.error(`Error: could not edit product id ${id} name to ${newProduct.prod_name}.`);
         throw(err);
     }
 }
 
+// export { getAllProducts, getProductWithId, createProduct, deleteProduct, updateProduct };
 export type { Product, NewProduct };
-export { getAllProducts, getProductWithId, createProduct, deleteProduct, updateProduct };
+export const ProductModel =  { getAllProducts, getProductWithId, createProduct, deleteProduct, updateProduct }
