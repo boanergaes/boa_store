@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { CartModel, type CartEntry } from "../models/cart.model.js";
+import { validationResult } from "express-validator";
 
 async function getCart(_: Request, res: Response): Promise<void> {
     try {
@@ -18,6 +19,16 @@ async function getCart(_: Request, res: Response): Promise<void> {
 
 async function addToCart(req: Request, res: Response): Promise<void> {
     try {
+        const errors = validationResult(req);
+        
+        if (!errors.isEmpty()) {
+            res.status(400).json({
+                message: "Validation error occured.",
+                errors: errors.array()
+            })
+            return
+        }
+
         const entry_id = Number(req.params.entry_id);
 
         const result: CartEntry | undefined = await CartModel.addItemToCart(entry_id);
@@ -38,6 +49,16 @@ async function addToCart(req: Request, res: Response): Promise<void> {
 
 async function deleteItem(req: Request, res: Response) {
     try {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            res.status(400).json({
+                message: "Validation error occured.",
+                errors: errors.array()
+            })
+            return
+        }
+        
         const id = Number(req.params.id);
 
         const result: {id: number, entry_id: number} | undefined = await CartModel.deleteCartItem(id);

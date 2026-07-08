@@ -20,7 +20,7 @@ async function getAllProducts(): Promise<Product[]> {
     try {
         const result = await db.query(`
             SELECT products.id, name AS prod_name, category_id, category, image_path, price 
-            FROM products JOIN prod_category
+            FROM products LEFT JOIN prod_category
             ON products.category_id = prod_category.id;
         `);
 
@@ -36,7 +36,7 @@ async function getProductWithId(id: number): Promise<Product> {
         // @TODO: does the product exist?
         const result = await db.query(`
             SELECT products.id, name AS prod_name, category_id, category, image_path, price 
-            FROM products JOIN prod_category
+            FROM products LEFT JOIN prod_category
             ON products.category_id = prod_category.id
             WHERE products.id = $1;
         `, [id]);

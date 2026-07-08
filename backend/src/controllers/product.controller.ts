@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import type { Product, NewProduct } from '../models/product.model.js';
 import { ProductModel } from '../models/product.model.js';
+import { validationResult } from 'express-validator';
 
 async function getAllProducts(_: Request, res: Response): Promise<void> {
     try {
@@ -19,6 +20,16 @@ async function getAllProducts(_: Request, res: Response): Promise<void> {
 
 async function getProduct(req: Request, res: Response) {
     try {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            res.status(400).json({
+                message: "Validation error occured.",
+                errors: errors.array()
+            });
+            return;
+        }
+
         const id = Number(req.params.id);
 
         const result: Product | undefined = await ProductModel.getProductWithId(id);
@@ -35,6 +46,16 @@ async function getProduct(req: Request, res: Response) {
 
 async function postProduct(req: Request, res: Response): Promise<void> {
     try {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            res.status(400).json({
+                message: "Validation error occured.",
+                errors: errors.array()
+            });
+            return;
+        }
+
         const incoming = req.body;
         const toCreate: NewProduct = {
             prod_name: incoming.prod_name,
@@ -57,6 +78,16 @@ async function postProduct(req: Request, res: Response): Promise<void> {
 
 async function deleteProduct(req: Request, res: Response) {
     try {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            res.status(400).json({
+                message: "Validation error occured.",
+                errors: errors.array()
+            });
+            return;
+        }
+
         const id = Number(req.params.id);
 
         const result: Product | undefined = await ProductModel.deleteProduct(id);
@@ -73,6 +104,16 @@ async function deleteProduct(req: Request, res: Response) {
 
 async function putProduct(req: Request, res: Response) {
     try {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            res.status(400).json({
+                message: "Validation error occured.",
+                errors: errors.array()
+            });
+            return;
+        }
+
         const id = Number(req.params.id);
         const incoming = req.body;
         const newProduct: NewProduct = {

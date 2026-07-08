@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { ProdCategoryModel, type ProdCategory } from "../models/prodCategory.model.js";
+import { validationResult } from "express-validator";
 
 async function getAllCategories(_: Request, res: Response): Promise<void> {
     try {
@@ -18,6 +19,16 @@ async function getAllCategories(_: Request, res: Response): Promise<void> {
 
 async function postCategory(req: Request, res: Response): Promise<void> {
     try {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            res.status(400).json({
+                message: "Validation error occured.",
+                errors: errors.array()
+            })
+            return
+        }
+
         const result: ProdCategory = await ProdCategoryModel.createCategory(req.body.category!.toLowerCase());
 
         res.status(201).json({
@@ -36,6 +47,16 @@ async function postCategory(req: Request, res: Response): Promise<void> {
 
 async function deleteCategory(req: Request, res: Response): Promise<void> {
     try {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            res.status(400).json({
+                message: "Validation error occured.",
+                errors: errors.array()
+            })
+            return
+        }
+        
         const id = Number(req.params.id);
         
         const result: ProdCategory | undefined = await ProdCategoryModel.deleteCategory(id);
