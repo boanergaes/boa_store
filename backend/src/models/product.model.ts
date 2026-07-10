@@ -54,8 +54,11 @@ async function createProduct(product: NewProduct): Promise<Product> {
         // @TODO: validate product catagory
         const result = await db.query(`
             WITH new_product AS (
-                INSERT INTO products (name, category_id, image_path, price)
-                VALUES ($1, $2, $3, $4)
+                INSERT INTO products (name, image_path, price, category_id)
+                SELECT 
+                    $1, $2, $3,
+                    -- category_id safely becomes null if the category doesn't exist
+                    (SELECT id FROM prod_category WHERE id = $4)
                 RETURNING *
             )
             SELECT 
@@ -67,7 +70,7 @@ async function createProduct(product: NewProduct): Promise<Product> {
                 new_product.price 
             FROM new_product LEFT JOIN prod_category
             ON new_product.category_id = prod_category.id;
-        `, [product.prod_name, product.category_id, product.image_path, product.price]);
+        `, [product.prod_name, product.image_path, product.price, product.category_id]);
 
         return result.rows[0];
     } catch(err) {
