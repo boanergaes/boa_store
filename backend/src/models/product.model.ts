@@ -102,7 +102,7 @@ async function updateProduct(id: number, newProduct: NewProduct): Promise<Produc
             WITH updated_product AS (
                 UPDATE products SET 
                     name = $1, 
-                    category_id = $2, 
+                    category_id = (SELECT id FROM prod_category WHERE id = $2), 
                     image_path = $3, 
                     price = $4  
                 WHERE id = $5 

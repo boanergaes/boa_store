@@ -33,7 +33,7 @@ async function addToCart(req: Request, res: Response): Promise<void> {
 
         const result: CartEntry | undefined = await CartModel.addItemToCart(entry_id);
 
-        res.status(result ? 200 : 404).json({
+        res.status(result ? 201 : 404).json({
             message: result ? "Successfully added product to cart." : "A product with this entry id does not exit.",
             body: result
         });
