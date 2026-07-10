@@ -6,7 +6,7 @@ async function getCart(_: Request, res: Response): Promise<void> {
     try {
         const result: CartEntry[] = await CartModel.getCart();
 
-        res.status(result.length > 0 ? 200 : 204).json({
+        res.status(200).json({
             message: "Fetched cart successfully.",
             cartCount: result.length,
             body: result
