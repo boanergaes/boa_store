@@ -8,7 +8,7 @@ const Method = {
     DELETE: 'DELETE'
 } as const;
 
-type ApiResponse<T> = T & { status: number };
+export type ApiResponse<T> = T & { resStatus: number };
 
 class ApiService {
     readonly base_url: string;
@@ -47,7 +47,7 @@ class ApiService {
             }
 
             return {
-                status: result.status,
+                resStatus: result.status,
                 ...data
             };
         } catch(err) {
@@ -56,23 +56,23 @@ class ApiService {
         }
     }
 
-    get<T>(url: string, option?: RequestInit) {
+    get<T>(url: string, option?: RequestInit): Promise<ApiResponse<T>> {
         return this.fetchApi<T>(Method.GET, url, option);
     }
 
-    post<T>(url: string, option: RequestInit) {
+    post<T>(url: string, option: RequestInit): Promise<ApiResponse<T>> {
         return this.fetchApi<T>(Method.POST, url, option);
     }
 
-    put<T>(url: string, option: RequestInit) {
+    put<T>(url: string, option: RequestInit): Promise<ApiResponse<T>> {
         return this.fetchApi<T>(Method.PUT, url, option);
     }
 
-    patch<T>(url: string, option: RequestInit) {
+    patch<T>(url: string, option: RequestInit): Promise<ApiResponse<T>> {
         return this.fetchApi<T>(Method.PATCH, url, option);
     }
 
-    delete<T>(url: string, option?: RequestInit) {
+    delete<T>(url: string, option?: RequestInit): Promise<ApiResponse<T>> {
         return this.fetchApi<T>(Method.DELETE, url, option);
     }
 }
