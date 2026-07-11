@@ -1,11 +1,12 @@
 import type { FormEvent } from 'react'
 import styles from './ProductForm.module.css'
-import type { Product, Category } from '../mockData'
+import type { Category } from '../services/prodCategory.services'
+import type { Product } from '../services/product.services'
 
 type ProductFormProps = {
   product?: Product
   categories: Category[]
-  onSave: (product: Omit<Product, 'prod_img' | 'prod_img_id'> & { prod_img: string; prod_img_id: number }) => void
+  onSave: (product: Product) => void
   onClose: () => void
 }
 
@@ -15,23 +16,21 @@ export function ProductForm({ product, categories, onSave, onClose }: ProductFor
     const target = event.currentTarget
     const formData = new FormData(target)
     const prod_name = (formData.get('prod_name') as string).trim()
-    const prod_catagory = (formData.get('prod_catagory') as string).trim()
+    const category = (formData.get('category') as string).trim()
     const price = Number(formData.get('price'))
 
-    if (!prod_name || !prod_catagory || Number.isNaN(price)) {
+    if (!prod_name || !category || Number.isNaN(price)) {
       return
     }
 
     onSave({
-      ...product,
+      id: product?.id ?? 0,
       prod_name,
-      prod_catagory,
+      category,
+      category_id: categories.find((item) => item.category === category)?.id ?? null,
+      image_path: product?.image_path ?? null,
       price,
-      prod_img: product?.prod_img ?? 'https://via.placeholder.com/420x280.png?text=Product',
-      prod_img_id: product?.prod_img_id ?? Date.now(),
-      prod_catagory_id:
-        categories.find((category) => category.catagory_name === prod_catagory)?.id ?? categories.length + 1,
-    } as Omit<Product, 'prod_img' | 'prod_img_id'> & { prod_img: string; prod_img_id: number })
+    })
     onClose()
   }
 
@@ -43,13 +42,13 @@ export function ProductForm({ product, categories, onSave, onClose }: ProductFor
       </label>
       <label>
         Category
-        <select defaultValue={product?.prod_catagory ?? ''} name="prod_catagory" required>
+        <select defaultValue={product?.category ?? ''} name="category" required>
           <option value="" disabled>
             Select category
           </option>
           {categories.map((category) => (
-            <option key={category.id} value={category.catagory_name}>
-              {category.catagory_name}
+            <option key={category.id} value={category.category}>
+              {category.category}
             </option>
           ))}
         </select>

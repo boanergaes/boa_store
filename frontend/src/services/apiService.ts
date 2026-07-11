@@ -33,7 +33,7 @@ class ApiService {
                     "Accept": this.accept,
                     ...option?.headers
                 }
-            })
+            });
 
             const text = await result.text();
             // handle empty responses
@@ -42,7 +42,7 @@ class ApiService {
             if (!result.ok) {
                 throw {
                     status: result.status,
-                    ...data
+                    ...(data as object)
                 }
             }
 
@@ -52,7 +52,7 @@ class ApiService {
             };
         } catch(err) {
             console.error(`Error: could not fetch ${method.toUpperCase()} ${this.base_url + url}`, err); // @TODO: remove err from this if it appears twice in the console.
-            throw(err);
+            throw err;
         }
     }
 

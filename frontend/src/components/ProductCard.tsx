@@ -1,6 +1,6 @@
 import { Pencil, Trash2 } from 'lucide-react'
 import styles from './ProductCard.module.css'
-import type { Product } from '../mockData'
+import type { Product } from '../services/product.services'
 
 type ProductCardProps = {
   product: Product
@@ -12,11 +12,11 @@ type ProductCardProps = {
 export function ProductCard({ product, onAddToCart, onEdit, onDelete }: ProductCardProps) {
   return (
     <article className={styles.card}>
-      <img src={product.prod_img} alt={product.prod_name} className={styles.image} />
+      <img src={product.image_path ?? 'https://placehold.co/600x400?text=Product'} alt={product.prod_name} className={styles.image} />
       <div className={styles.details}>
         <h3>{product.prod_name}</h3>
-        <p>{product.prod_catagory}</p>
-        <strong>${product.price.toFixed(2)}</strong>
+        <p>{product.category ?? 'Uncategorized'}</p>
+        <strong>${(Number(product.price) || 0).toFixed(2)}</strong>
       </div>
       <div className={styles.actions}>
         <button className={styles.primaryButton} type="button" onClick={() => onAddToCart(product)}>

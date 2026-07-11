@@ -1,110 +1,220 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
-import { initialCart, mockCategories, mockProducts, type CartItem, type Category, type Product } from '../mockData'
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import { getProducts, type Product } from "../services/product.services";
+import {
+  getCategories,
+  type Category,
+} from "../services/prodCategory.services";
+import {
+  getCartItems,
+  addToCart as addToCartService,
+  deleteCartItem as deleteCartItemService,
+  type CartItem,
+} from "../services/cart.services";
+import {
+  createProduct as createProductService,
+  updateProduct as updateProductService,
+  deleteProduct as deleteProductService,
+} from "../services/product.services";
+import {
+  createCategory as createCategoryService,
+  deleteCategory as deleteCategoryService,
+} from "../services/prodCategory.services";
 
 type CartContextValue = {
-  products: Product[]
-  categories: Category[]
-  cart: CartItem[]
-  activeCategory: string
-  filteredProducts: Product[]
-  cartCount: number
-  cartTotal: number
-  addToCart: (product: Product) => void
-  removeFromCart: (id: number) => void
-  clearCart: () => void
-  deleteProduct: (productId: number) => void
-  updateProduct: (product: Product) => void
-  addProduct: (product: Product) => void
-  deleteCategory: (categoryName: string) => void
-  addCategory: (name: string) => void
-  setActiveCategory: (categoryName: string) => void
+  products: Product[];
+  categories: Category[];
+  cart: CartItem[];
+  activeCategory: string;
+  filteredProducts: Product[];
+  cartCount: number;
+  cartTotal: number;
+  isLoading: boolean;
+  error: string | null;
+  addToCart: (product: Product) => Promise<void>;
+  removeFromCart: (id: number) => Promise<void>;
+  clearCart: () => Promise<void>;
+  deleteProduct: (productId: number) => Promise<void>;
+  updateProduct: (product: Product) => Promise<void>;
+  addProduct: (product: Product) => Promise<void>;
+  deleteCategory: (categoryName: string) => Promise<void>;
+  addCategory: (name: string) => Promise<void>;
+  setActiveCategory: (categoryName: string) => void;
+  refreshData: () => Promise<void>;
+};
+
+const CartContext = createContext<CartContextValue | undefined>(undefined);
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return "An unknown error occurred";
 }
 
-const CartContext = createContext<CartContextValue | undefined>(undefined)
-
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [products, setProducts] = useState<Product[]>(mockProducts)
-  const [categories, setCategories] = useState<Category[]>(mockCategories)
-  const [cart, setCart] = useState<CartItem[]>(initialCart)
-  const [activeCategory, setActiveCategory] = useState('All')
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const refreshData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const [fetchedProducts, fetchedCategories, fetchedCart] =
+        await Promise.all([getProducts(), getCategories(), getCartItems()]);
+      setProducts(fetchedProducts);
+      setCategories(fetchedCategories);
+      setCart(fetchedCart);
+      setActiveCategory("All");
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshData();
+  }, []);
 
   const filteredProducts = useMemo(() => {
-    if (activeCategory === 'All') {
-      return products
+    if (activeCategory === "All") {
+      return products;
     }
+    return products.filter((product) => product.category === activeCategory);
+  }, [activeCategory, products]);
 
-    return products.filter((product) => product.prod_catagory === activeCategory)
-  }, [activeCategory, products])
+  const cartCount = cart.length;
+  const cartTotal = cart.reduce(
+    (sum, item) => sum + (Number(item.price) || 0),
+    0,
+  );
 
-  const cartCount = cart.length
-  const cartTotal = cart.reduce((sum, item) => sum + item.entry_price, 0)
-
-  const addToCart = (product: Product) => {
-    const alreadyAdded = cart.some((item) => item.entry_id === product.id)
-
-    if (alreadyAdded) {
-      return
+  const addToCart = async (product: Product) => {
+    try {
+      setError(null);
+      const newItem = await addToCartService(product.id);
+      setCart((current) => [...current, newItem]);
+    } catch (err) {
+      setError(getErrorMessage(err));
     }
+  };
 
-    setCart((current) => [
-      ...current,
-      {
-        id: current.length + 1,
-        entry_id: product.id,
-        entry_name: product.prod_name,
-        entry_catagory: product.prod_catagory,
-        entry_price: product.price,
-        entry_image: product.prod_img,
-      },
-    ])
-  }
-
-  const removeFromCart = (id: number) => {
-    setCart((current) => current.filter((item) => item.id !== id))
-  }
-
-  const clearCart = () => {
-    setCart([])
-  }
-
-  const deleteProduct = (productId: number) => {
-    setProducts((current) => current.filter((product) => product.id !== productId))
-    setCart((current) => current.filter((item) => item.entry_id !== productId))
-  }
-
-  const updateProduct = (product: Product) => {
-    setProducts((current) => current.map((item) => (item.id === product.id ? product : item)))
-  }
-
-  const addProduct = (product: Product) => {
-    setProducts((current) => [...current, product])
-  }
-
-  const deleteCategory = (categoryName: string) => {
-    setCategories((current) => current.filter((category) => category.catagory_name !== categoryName))
-    setProducts((current) =>
-      current.map((product) =>
-        product.prod_catagory === categoryName ? { ...product, prod_catagory: 'Uncategorized' } : product,
-      ),
-    )
-    setActiveCategory('All')
-  }
-
-  const addCategory = (name: string) => {
-    const nextName = name.trim()
-
-    if (!nextName) {
-      return
+  const removeFromCart = async (id: number) => {
+    try {
+      setError(null);
+      const deletedItem = await deleteCartItemService(id);
+      if (deletedItem) {
+        setCart((current) =>
+          current.filter((item) => item.id !== deletedItem.id),
+        );
+      }
+    } catch (err) {
+      setError(getErrorMessage(err));
     }
+  };
 
-    const exists = categories.some((category) => category.catagory_name === nextName)
-
-    if (exists) {
-      return
+  const clearCart = async () => {
+    try {
+      setError(null);
+      const results = await Promise.all(
+        cart.map((item) => deleteCartItemService(item.id)),
+      );
+      if (results.length > 0) {
+        setCart([]);
+      }
+    } catch (err) {
+      setError(getErrorMessage(err));
     }
+  };
 
-    setCategories((current) => [...current, { id: current.length + 1, catagory_name: nextName }])
-  }
+  const deleteProduct = async (productId: number) => {
+    try {
+      setError(null);
+      const deletedProduct = await deleteProductService(productId);
+      if (deletedProduct) {
+        setProducts((current) =>
+          current.filter((p) => p.id !== deletedProduct.id),
+        );
+        setCart((current) =>
+          current.filter((item) => item.prod_id !== deletedProduct.id),
+        );
+      }
+    } catch (err) {
+      setError(getErrorMessage(err));
+    }
+  };
+
+  const updateProduct = async (product: Product) => {
+    try {
+      setError(null);
+      const input = {
+        prod_name: product.prod_name,
+        category_id: product.category_id,
+        image_path: product.image_path,
+        price: product.price,
+      };
+      const updatedProduct = await updateProductService(product.id, input);
+      if (updatedProduct) {
+        setProducts((current) =>
+          current.map((p) => (p.id === updatedProduct.id ? updatedProduct : p)),
+        );
+      }
+    } catch (err) {
+      setError(getErrorMessage(err));
+    }
+  };
+
+  const addProduct = async (product: Product) => {
+    try {
+      setError(null);
+      const input = {
+        prod_name: product.prod_name,
+        category_id: product.category_id,
+        image_path: product.image_path,
+        price: product.price,
+      };
+      const newProduct = await createProductService(input);
+      setProducts((current) => [...current, newProduct]);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    }
+  };
+
+  const deleteCategory = async (categoryName: string) => {
+    try {
+      setError(null);
+      const category = categories.find((c) => c.category === categoryName);
+      if (category) {
+        const deletedCategory = await deleteCategoryService(category.id);
+        if (deletedCategory) {
+          setCategories((current) =>
+            current.filter((c) => c.id !== deletedCategory.id),
+          );
+        }
+      }
+    } catch (err) {
+      setError(getErrorMessage(err));
+    }
+  };
+
+  const addCategory = async (name: string) => {
+    try {
+      setError(null);
+      const newCategory = await createCategoryService(name);
+      setCategories((current) => [...current, newCategory]);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    }
+  };
 
   const value: CartContextValue = {
     products,
@@ -114,6 +224,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     filteredProducts,
     cartCount,
     cartTotal,
+    isLoading,
+    error,
     addToCart,
     removeFromCart,
     clearCart,
@@ -123,17 +235,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
     deleteCategory,
     addCategory,
     setActiveCategory,
-  }
+    refreshData,
+  };
 
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
 export function useCart() {
-  const context = useContext(CartContext)
+  const context = useContext(CartContext);
 
   if (!context) {
-    throw new Error('useCart must be used inside CartProvider')
+    throw new Error("useCart must be used inside CartProvider");
   }
 
-  return context
+  return context;
 }

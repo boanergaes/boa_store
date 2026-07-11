@@ -6,7 +6,11 @@ export const idValidator = param('id')
     .notEmpty()
     .withMessage('Id paramenter must be given.');
         
-
+export const entryIdValidator = param('entry_id')
+    .isInt()
+    .withMessage('Id parameter should be integer.')
+    .notEmpty()
+    .withMessage('Id paramenter must be given.');
 
 export const productValidator = [
     body('prod_name')

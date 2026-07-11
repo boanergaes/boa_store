@@ -22,7 +22,7 @@ async function getCart(): Promise<CartEntry[]> {
                 products.price, 
                 products.image_path
             FROM cart JOIN products ON cart.entry_id = products.id
-            JOIN prod_category ON products.category_id = prod_category.id;
+            LEFT JOIN prod_category ON products.category_id = prod_category.id;
         `);
     
         return result.rows;

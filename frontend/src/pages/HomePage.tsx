@@ -4,10 +4,11 @@ import { Header } from '../components/Header'
 import { ProductCard } from '../components/ProductCard'
 import { Modal } from '../components/Modal'
 import { ProductForm } from '../components/ProductForm'
+import { LoadingIndicator } from '../components/LoadingIndicator'
 import styles from './HomePage.module.css'
 import { useCart } from '../hooks/useCart'
 import { useNavigate } from 'react-router-dom'
-import type { Product } from '../mockData'
+import type { Product } from '../services/product.services'
 
 export function HomePage() {
   const navigate = useNavigate()
@@ -23,6 +24,9 @@ export function HomePage() {
     deleteCategory,
     setActiveCategory,
     addCategory,
+    isLoading,
+    error,
+    refreshData,
   } = useCart()
   const [isProductModalOpen, setIsProductModalOpen] = useState(false)
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
@@ -47,19 +51,15 @@ export function HomePage() {
 
   const handleSaveProduct = (product: Product) => {
     if (product.id) {
-      updateProduct(product)
+      void updateProduct(product)
       return
     }
 
-    addProduct({
-      ...product,
-      id: Date.now(),
-      prod_img_id: Date.now(),
-    })
+    void addProduct(product)
   }
 
   const handleAddCategory = (name: string) => {
-    addCategory(name)
+    void addCategory(name)
     setIsCategoryModalOpen(false)
   }
 
@@ -94,16 +94,16 @@ export function HomePage() {
           {categories.map((category) => (
             <div
               key={category.id}
-              className={`${styles.filterTag} ${activeCategory === category.catagory_name ? styles.active : ''}`}
+              className={`${styles.filterTag} ${activeCategory === category.category ? styles.active : ''}`}
             >
-              <button type="button" className={styles.filterLabel} onClick={() => setActiveCategory(category.catagory_name)}>
-                {category.catagory_name}
+              <button type="button" className={styles.filterLabel} onClick={() => setActiveCategory(category.category)}>
+                {category.category}
               </button>
               <button
                 type="button"
                 className={styles.filterRemove}
-                onClick={() => deleteCategory(category.catagory_name)}
-                aria-label={`Delete ${category.catagory_name}`}
+                onClick={() => void deleteCategory(category.category)}
+                aria-label={`Delete ${category.category}`}
               >
                 ×
               </button>
@@ -116,11 +116,24 @@ export function HomePage() {
         </button>
       </section>
 
-      <section className={styles.productGrid}>
-        {filteredProducts.map((product) => (
-          <ProductCard key={product.id} product={product} onAddToCart={addToCart} onEdit={() => openEditProduct(product)} onDelete={() => deleteProduct(product.id)} />
-        ))}
-      </section>
+      {isLoading ? <LoadingIndicator message="Loading inventory..." /> : null}
+      {error ? (
+        <p role="alert">
+          {error}{' '}
+          <button className={styles.ghostButton} type="button" onClick={() => void refreshData()}>
+            Retry
+          </button>
+        </p>
+      ) : null}
+
+      {!isLoading && !error ? (
+        <section className={styles.productGrid}>
+          {filteredProducts.length === 0 ? <p>No products available right now.</p> : null}
+          {filteredProducts.map((product) => (
+            <ProductCard key={product.id} product={product} onAddToCart={() => void addToCart(product)} onEdit={() => openEditProduct(product)} onDelete={() => void deleteProduct(product.id)} />
+          ))}
+        </section>
+      ) : null}
 
       {isProductModalOpen ? (
         <Modal title={productToEdit ? 'Edit product' : 'Add product'} onClose={closeProductModal}>
